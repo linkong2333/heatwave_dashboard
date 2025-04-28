@@ -21,7 +21,109 @@ import json
 
 # ---------------------- 训练数据处理与模型训练部分 ----------------------
 # 保持原有封装，不动
+# ---------------------- 数据读取与预处理 ----------------------
+df = load_training_data()
+print("数据各列情况:")
+print(df.columns)
+print(df.head())
 
+# 提取经纬度（如果有 .geo 字段）
+if '.geo' in df.columns:
+    def extract_lon_lat(geo_str):
+        try:
+            geo_obj = json.loads(geo_str)
+            coords = geo_obj.get('coordinates', [None, None])
+            return pd.Series({"longitude": coords[0], "latitude": coords[1]})
+        except Exception as e:
+            return pd.Series({"longitude": None, "latitude": None})
+
+    coords_df = df['.geo'].apply(extract_lon_lat)
+    df = pd.concat([df, coords_df], axis=1)
+    print("成功提取 longitude 和 latitude 列。")
+
+# 检查关键字段
+required_cols = ['LST_Celsius', 'Albedo', 'BuildingDensity', 'GreenCover', 'NDVI', 'RH', 'longitude', 'latitude']
+missing = [col for col in required_cols if col not in df.columns]
+if missing:
+    print("缺失字段:", missing)
+else:
+    print("所有关键字段均存在。")
+
+# 删除关键字段缺失的样本
+df = df.dropna(subset=required_cols)
+
+# ---------------------- 处理 LST_Celsius 异常值 ----------------------
+# 利用 IQR 方法处理异常值
+Q1 = df['LST_Celsius'].quantile(0.25)
+Q3 = df['LST_Celsius'].quantile(0.75)
+IQR = Q3 - Q1
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+print(f"LST_Celsius 异常值检测: 下界 = {lower_bound}, 上界 = {upper_bound}")
+
+# 仅保留 LST_Celsius 在合理范围内的样本
+df = df[(df['LST_Celsius'] >= lower_bound) & (df['LST_Celsius'] <= upper_bound)]
+print("处理异常值后样本数量:", len(df))
+
+# ---------------------- 特征与目标变量 ----------------------
+# 使用 Albedo, BuildingDensity, GreenCover, NDVI, RH 作为特征，预测 LST_Celsius
+X = df[['Albedo', 'BuildingDensity', 'GreenCover', 'NDVI', 'RH']]
+y = df['LST_Celsius']
+
+# 划分训练集和测试集
+X_train, X_test, y_train, y_test, df_train, df_test = train_test_split(
+    X, y, df, test_size=0.2, random_state=42
+)
+
+# ---------------------- 随机森林回归模型训练 ----------------------
+@st.cache_resource
+def train_model(X_train, y_train):
+    regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+    regressor.fit(X_train, y_train)
+    return regressor
+
+rf_regressor = train_model(X_train, y_train)
+
+# 预测并评估
+y_pred = rf_regressor.predict(X_test)
+r2 = r2_score(y_test, y_pred)
+mae = mean_absolute_error(y_test, y_pred)
+print("测试集 R^2: {:.2f}".format(r2))
+print("测试集 MAE: {:.2f}".format(mae))
+
+# 将预测结果存入测试集 DataFrame
+df_test = df_test.copy()
+df_test['LST_Predicted'] = y_pred
+
+# 输出测试集真实值与预测值的统计数据
+print("Test set actual LST_Celsius statistics:")
+print(df_test['LST_Celsius'].describe())
+print("\nTest set predicted LST_Celsius statistics:")
+print(df_test['LST_Predicted'].describe())
+
+# ---------------------- 空间可视化 ----------------------
+# 利用经纬度构造 GeoDataFrame
+geometry = [Point(xy) for xy in zip(df_test['longitude'], df_test['latitude'])]
+gdf = gpd.GeoDataFrame(df_test, geometry=geometry, crs="EPSG:4326")
+
+# 可视化预测结果
+plt.figure(figsize=(10, 8))
+gdf.plot(column='LST_Predicted', cmap='coolwarm', legend=True, markersize=50)
+plt.title("Predicted LST_Celsius (Random Forest Regression)")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show()
+
+# 可视化实际 LST_Celsius
+plt.figure(figsize=(10, 8))
+gdf.plot(column='LST_Celsius', cmap='coolwarm', legend=True, markersize=50)
+plt.title("Actual LST_Celsius")
+plt.xlabel("Longitude")
+plt.ylabel("Latitude")
+plt.show()
+
+# ---------------------- 模型保存 ----------------------
+# joblib.dump(rf_regressor, "rf_model_regressor.pkl")
 
 
 # ---------------------- 脆弱性数据处理与空间连接部分，封装为函数 ----------------------
