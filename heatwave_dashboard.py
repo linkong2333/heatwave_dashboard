@@ -4,17 +4,23 @@ import matplotlib.pyplot as plt
 import geopandas as gpd
 from shapely.geometry import Point
 from sklearn.ensemble import RandomForestRegressor
+import streamlit as st  # 确保streamlit已经import（你已有）
+
+@st.cache_data
+def load_training_data():
+    data_path = r"Heatwave_Training_Data_With_RoadDensity (4).csv"
+    df = pd.read_csv(data_path)
+    df.columns = df.columns.str.strip()
+    return df
+
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+import streamlit as st
 import joblib
 import json
 
 # ---------------------- 数据读取与预处理 ----------------------
-data_path = r"Heatwave_Training_Data_With_RoadDensity (4).csv"
-df = pd.read_csv(data_path)
-
-# 清理列名（去除空格）
-df.columns = df.columns.str.strip()
+df = load_training_data()
 print("数据各列情况:")
 print(df.columns)
 print(df.head())
@@ -68,8 +74,13 @@ X_train, X_test, y_train, y_test, df_train, df_test = train_test_split(
 )
 
 # ---------------------- 随机森林回归模型训练 ----------------------
-rf_regressor = RandomForestRegressor(n_estimators=100, random_state=42)
-rf_regressor.fit(X_train, y_train)
+@st.cache_resource
+def train_model(X_train, y_train):
+    regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+    regressor.fit(X_train, y_train)
+    return regressor
+
+rf_regressor = train_model(X_train, y_train)
 
 # 预测并评估
 y_pred = rf_regressor.predict(X_test)
