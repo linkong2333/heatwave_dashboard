@@ -1,10 +1,11 @@
+import streamlit as st
+st.set_page_config(page_title="Urban Heatwave Vulnerability Dashboard", layout="wide")
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import geopandas as gpd
 from shapely.geometry import Point
 from sklearn.ensemble import RandomForestRegressor
-import streamlit as st  # 保证只import一次
 
 @st.cache_data
 def load_training_data():
@@ -219,7 +220,6 @@ def draw_box_plot(gdf_with_district):
     st.pyplot(fig)
 
 # ------------------ Streamlit 主流程 ------------------
-st.set_page_config(page_title="Urban Heatwave Vulnerability Dashboard", layout="wide")
 st.title("Urban Heatwave Vulnerability Index Dashboard")
 st.markdown("Visualize heatwave risk distribution and social vulnerability across Hong Kong districts.")
 
