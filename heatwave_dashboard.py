@@ -110,7 +110,7 @@ plt.ylabel("Latitude")
 plt.show()
 
 # ---------------------- 模型保存 ----------------------
-joblib.dump(rf_regressor, "rf_model_regressor.pkl")
+# joblib.dump(rf_regressor, "rf_model_regressor.pkl")
 
 
 
