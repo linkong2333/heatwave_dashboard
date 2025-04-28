@@ -325,19 +325,18 @@ def draw_box_plot(gdf_with_district):
 st.title("Urban Heatwave Vulnerability Index Dashboard")
 st.markdown("Visualize heatwave risk distribution and social vulnerability across Hong Kong districts.")
 
-# 数据加载
-df = load_training_data()
-gdf_with_district, districts_gdf = process_vulnerability_data()
-
-# 侧边栏选择
-option = st.sidebar.selectbox(
-    "Select Visualization",
-    ("Map of Vulnerability Index", "Bar Chart of District Average", "Box Plot of Vulnerability Distribution")
-)
-
-if option == "Map of Vulnerability Index":
-    draw_map(gdf_with_district, districts_gdf)
-elif option == "Bar Chart of District Average":
-    draw_bar_chart(gdf_with_district)
-elif option == "Box Plot of Vulnerability Distribution":
-    draw_box_plot(gdf_with_district)
+# 增加按钮，点击后才执行大计算
+if st.button('点击开始预测与可视化'):
+    with st.spinner('模型正在加载和预测，请稍候...'):
+        df = load_training_data()
+        gdf_with_district, districts_gdf = process_vulnerability_data()
+        option = st.sidebar.selectbox(
+            "Select Visualization",
+            ("Map of Vulnerability Index", "Bar Chart of District Average", "Box Plot of Vulnerability Distribution")
+        )
+        if option == "Map of Vulnerability Index":
+            draw_map(gdf_with_district, districts_gdf)
+        elif option == "Bar Chart of District Average":
+            draw_bar_chart(gdf_with_district)
+        elif option == "Box Plot of Vulnerability Distribution":
+            draw_box_plot(gdf_with_district)
