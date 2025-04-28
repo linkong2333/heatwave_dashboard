@@ -124,7 +124,7 @@ import os
 import json
 
 # ---------------------- 第一步：读取每个区的人口表格 ----------------------
-root_path = "/Users/lichenhan/05_rf_code_and_data/人口"
+root_path = "人口"
 districts = [name for name in os.listdir(root_path) if os.path.isdir(os.path.join(root_path, name))]
 
 population_data = []
@@ -202,7 +202,7 @@ pop_df['District'] = pop_df['District_CN'].map(district_mapping)
 pop_df = pop_df.drop(columns=['District_CN'])
 
 # ---------------------- 第二步：处理热浪预测点数据 ----------------------
-data_path = r"/Users/lichenhan/05_rf_code_and_data/Heatwave_Training_Data_With_RoadDensity (4).csv"
+data_path = r"Heatwave_Training_Data_With_RoadDensity (4).csv"
 df = pd.read_csv(data_path)
 
 # 清理列名
@@ -228,7 +228,7 @@ geometry = [Point(xy) for xy in zip(df['longitude'], df['latitude'])]
 gdf = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:4326")
 
 # ---------------------- 第三步：加载区界并空间连接 ----------------------
-districts_gdf = gpd.read_file("/Users/lichenhan/05_rf_code_and_data/DistrictBoundary_SHP/DCD.shp")
+districts_gdf = gpd.read_file("DistrictBoundary_SHP/DCD.shp")
 districts_gdf = districts_gdf.to_crs("EPSG:4326")
 
 # 用英文区名
