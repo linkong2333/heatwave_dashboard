@@ -215,11 +215,11 @@ def main():
         name="District Boundaries",
         style_function=lambda x: {'fillColor': 'transparent', 'color': 'black', 'weight': 1}
     ).add_to(m)
-    # Define colormap
-    colormap = linear.RdYlGn_11.scale(
-        gdf_with_district['Vulnerability_Index'].min(),
-        gdf_with_district['Vulnerability_Index'].max()
-    )
+    # Ensure colormap thresholds are sorted
+    vulnerability_min = gdf_with_district['Vulnerability_Index'].min()
+    vulnerability_max = gdf_with_district['Vulnerability_Index'].max()
+    colormap = linear.RdYlGn_11.scale(vulnerability_min, vulnerability_max).to_step(18)
+
     colormap.caption = 'Urban Heatwave Vulnerability Index'
     colormap.add_to(m)
     # Add points with color based on Vulnerability_Index
