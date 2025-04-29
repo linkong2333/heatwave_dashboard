@@ -241,7 +241,17 @@ def main():
 
     st.header("District-wise Average Vulnerability Index")
     gdf_with_district, _ = get_vulnerability_gdf()
-    district_mean = gdf_with_district.groupby('District')['Vulnerability_Index'].mean().sort_values(ascending=False)
+    # Remove empty or invalid values before plotting
+    valid_gdf = gdf_with_district[['District', 'Vulnerability_Index']].dropna()
+    # Remove empty or invalid district names
+    valid_gdf = valid_gdf[valid_gdf['District'].notnull() & (valid_gdf['District'] != "")]
+    district_mean = valid_gdf.groupby('District')['Vulnerability_Index'].mean()
+    # Remove any districts with NaN mean
+    district_mean = district_mean.dropna()
+    # Sort the district_mean
+    district_mean = district_mean.sort_values(ascending=False)
+    # Remove any empty columns
+    district_mean = district_mean[district_mean.index != ""]
     norm = colors.Normalize(vmin=district_mean.min(), vmax=district_mean.max())
     cmap = cm.get_cmap('RdYlGn_r')
     bar_colors = [cmap(norm(value)) for value in district_mean]
@@ -250,7 +260,10 @@ def main():
     ax.set_title("Average Urban Heatwave Vulnerability Index by District", fontsize=16)
     ax.set_xlabel("District")
     ax.set_ylabel("Average Vulnerability Index")
-    ax.set_ylim(0.4, 0.75)
+    # Adjust y-axis range to fit the data tightly
+    ymin = max(0, district_mean.min() - 0.01)
+    ymax = min(1, district_mean.max() + 0.01)
+    ax.set_ylim(ymin, ymax)
     plt.xticks(rotation=45, ha='right')
     plt.grid(axis='y', linestyle='--', alpha=0.7)
     plt.tight_layout()
