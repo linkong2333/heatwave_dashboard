@@ -207,34 +207,37 @@ def main():
 
     st.header("Heatwave Vulnerability Map")
     gdf_with_district, districts_gdf = get_vulnerability_gdf()
-    # Create interactive Folium map
-    m = folium.Map(location=[22.3, 114.2], zoom_start=10)
-    # Add district boundaries
-    folium.GeoJson(
-        districts_gdf,
-        name="District Boundaries",
-        style_function=lambda x: {'fillColor': 'transparent', 'color': 'black', 'weight': 1}
-    ).add_to(m)
-    # Ensure colormap thresholds are sorted
-    vulnerability_min = gdf_with_district['Vulnerability_Index'].min()
-    vulnerability_max = gdf_with_district['Vulnerability_Index'].max()
-    colormap = linear.RdYlGn_11.scale(vulnerability_min, vulnerability_max).to_step(18)
-
-    colormap.caption = 'Urban Heatwave Vulnerability Index'
-    colormap.add_to(m)
-    # Add points with color based on Vulnerability_Index
-    for _, row in gdf_with_district.iterrows():
-        if pd.notnull(row['latitude']) and pd.notnull(row['longitude']):
-            folium.CircleMarker(
-                location=[row['latitude'], row['longitude']],
-                radius=5,
-                color=colormap(row['Vulnerability_Index']),
-                fill=True,
-                fill_color=colormap(row['Vulnerability_Index']),
-                fill_opacity=0.7,
-                popup=folium.Popup(f"Vulnerability Index: {row['Vulnerability_Index']:.3f}", max_width=200)
-            ).add_to(m)
-    st_folium(m, width=700, height=500)
+    # Create static map with matplotlib
+    fig_map, ax_map = plt.subplots(figsize=(10, 8))
+    # Plot district boundaries
+    districts_gdf.boundary.plot(ax=ax_map, linewidth=1, color='black')
+    # Prepare colormap
+    norm = colors.Normalize(
+        vmin=gdf_with_district['Vulnerability_Index'].min(),
+        vmax=gdf_with_district['Vulnerability_Index'].max()
+    )
+    cmap = cm.get_cmap('RdYlGn_r')
+    # Plot points
+    gdf_with_district.plot(
+        ax=ax_map,
+        column='Vulnerability_Index',
+        cmap=cmap,
+        norm=norm,
+        markersize=18,
+        alpha=0.7,
+        legend=False
+    )
+    # Add colorbar
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm._A = []
+    cbar = fig_map.colorbar(sm, ax=ax_map, fraction=0.025, pad=0.01)
+    cbar.set_label('Urban Heatwave Vulnerability Index')
+    ax_map.set_title("Urban Heatwave Vulnerability Map (Static)", fontsize=16)
+    ax_map.set_xlabel("Longitude")
+    ax_map.set_ylabel("Latitude")
+    ax_map.set_aspect('equal', adjustable='datalim')
+    plt.tight_layout()
+    st.pyplot(fig_map)
 
     st.header("District-wise Average Vulnerability Index")
     gdf_with_district, _ = get_vulnerability_gdf()
