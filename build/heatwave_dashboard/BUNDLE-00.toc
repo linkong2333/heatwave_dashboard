@@ -1,3 +1,0 @@
-([('heatwave_dashboard',
-   '/Users/lichenhan/05_rf_code_and_data/heatwave_dashboard/dist/heatwave_dashboard',
-   'EXECUTABLE')],)
