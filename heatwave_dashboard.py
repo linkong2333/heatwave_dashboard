@@ -22,6 +22,25 @@ st.markdown(
         font-size: 1.1rem !important;
     }
     </style>
+    <script>
+        // 自动滚动到顶部的函数
+        const scrollToTop = () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        // 监听按钮点击
+        window.addEventListener('load', function() {
+            const observer = new MutationObserver((mutations) => {
+                scrollToTop();
+            });
+            observer.observe(document.querySelector('.main'), {
+                childList: true,
+                subtree: true
+            });
+        });
+    </script>
     """,
     unsafe_allow_html=True
 )
@@ -52,132 +71,167 @@ def main():
     from branca.colormap import linear
     from PIL import Image
 
-    st.title("Urban Heatwave Vulnerability Dashboard")
+    # ------------- Sidebar Pagination Navigation (Refactored for Four Sections) -------------
+    section_names = [
+        "Intro",
+        "Model",
+        "Vulnerability Index",
+        "Conclusion",
+    ]
+    num_pages = len(section_names)
+    if 'page_number' not in st.session_state:
+        st.session_state['page_number'] = 1
 
-    # Display images and text in aligned columns
-    img1 = Image.open("img/img1.jpg")
-    img2 = Image.open("img/img2.jpg")
-    img3 = Image.open("img/img3.jpg")  # Flowchart image
+    st.sidebar.markdown(
+        """
+        <style>
+        /* Increase sidebar width by 15% */
+        section[data-testid="stSidebar"] {
+            min-width: 250px !important;
+            width: 250px !important;
+            max-width: 250px !important;
+        }
+        /* Sidebar flex container for equal button width and centering */
+        .stSidebar {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;  /* Center items vertically */
+            align-items: center;      /* Center items horizontally */
+            height: 100vh;
+        }
+        /* Sidebar button container for flex layout and equal width */
+        .stSidebar > div {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            padding: 0;
+        }
+        /* Container for all buttons */
+        .stButton {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        /* Style for the button element itself */
+        button[kind="secondary"] {
+            width: 180px !important;
+            min-width: 180px !important;
+            max-width: 180px !important;
+            height: 60px !important;
+            padding: 4.5px 13.5px !important;
+            box-sizing: border-box !important;
+            margin: 0 auto !important;
+            background: linear-gradient(90deg, #f2f2f2 80%, #e2eafc 100%) !important;
+            color: #003049 !important;
+            transition: all 0.3s ease !important;
+        }
+        button[kind="secondary"]:hover {
+            background: linear-gradient(90deg, #a8dadc 60%, #fcbf49 100%) !important;
+            color: #003049 !important;
+        }
+        /* Selected button style */
+        button[kind="secondary"].selected {
+            background: linear-gradient(90deg, #457B9D 80%, #D62828 100%) !important;
+            color: #ffffff !important;
+            border: 1.5px solid #D62828 !important;
+            box-shadow: 0 2px 12px 0 rgba(68, 68, 68, 0.09) !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    for i, name in enumerate(section_names):
+        selected = (st.session_state['page_number'] == i + 1)
+        button_class = "selected" if selected else ""
+        if st.sidebar.button(name, key=f"sidebar_page_{i+1}", help=name):
+            st.session_state['page_number'] = i + 1
 
-    # First row: img1 and its text
-    col_img1, col_txt1 = st.columns([1, 2])
-    with col_img1:
-        st.image(img1, use_container_width=True)
-    with col_txt1:
-        st.markdown("""
-        <span style="font-size:26px; font-weight:bold; color:#D62828;">Research Background</span>
-        <ul style="font-size:19px;">
-        <li><span style="font-weight:bold; color:#003049;">Hong Kong is experiencing increasingly frequent and intense heatwaves</span> due to climate change and rapid urbanization.</li>
-        <li>The <span style="font-weight:bold; color:#003049;">urban heat island effect</span> exacerbates high temperatures in densely populated districts.</li>
-        <li>Heatwaves pose significant health risks, especially to <span style="font-weight:bold; color:#003049;">vulnerable groups</span> such as the elderly, children, and low-income residents.</li>
-        </ul>
-        <span style="font-size:26px; font-weight:bold; color:#D62828;">Objective</span>
-        <ul style="font-size:19px;">
-        <li>This dashboard aims to visualize the spatial distribution of heatwave risk and social vulnerability across Hong Kong districts.</li>
-        <li>It integrates land surface temperature, demographic, and socioeconomic data to identify communities most at risk.</li>
-        <li>Supports targeted adaptation and mitigation strategies for urban heatwave resilience.</li>
-        </ul>
-        """, unsafe_allow_html=True)
+    def up_arrow(page_num):
+        if page_num > 1:
+            col1, col2, col3 = st.columns([4,1,4])
+            with col2:
+                if st.button("⬆️", key="up_arrow"):
+                    st.session_state['page_number'] = page_num - 1
+                    st.rerun()
+    def down_arrow(page_num):
+        if page_num < num_pages:
+            col1, col2, col3 = st.columns([4,1,4])
+            with col2:
+                if st.button("⬇️", key="down_arrow"):
+                    st.session_state['page_number'] = page_num + 1
+                    st.rerun()
 
-    # Second row: img2 and its text
-    col_txt2, col_img2 = st.columns([2, 1])
-    with col_txt2:
-        st.markdown("""
-        <span style="font-size:26px; font-weight:bold; color:#D62828;">Heatwave Vulnerability Assessment Overview</span>
-        <ul style="font-size:19px;">
-        <li>This section provides an overview of the methodology and approach for evaluating heatwave vulnerability in Hong Kong.</li>
-        <li>The assessment integrates multiple data sources, including population demographics, land surface temperature, and urban form variables.</li>
-        <li>The goal is to identify spatial patterns of vulnerability and inform targeted adaptation strategies.</li>
-        </ul>
-        """, unsafe_allow_html=True)
-    with col_img2:
-        st.image(img2, use_container_width=True)
+    # Load images only if needed
+    def get_img(fname):
+        try:
+            return Image.open(fname)
+        except Exception:
+            return None
 
-    # ---------------------- Modelling, Data, and Results Section (Combined) ----------------------
-    st.header("Modelling, Data Processing, and Results")
-    col_data_txt, col_data_img = st.columns([2, 1])
-    with col_data_txt:
-        st.markdown("""
-        <div style="font-size:22px; font-weight:bold; color:#457B9D; margin-bottom: 10px;">Data Sources, Processing &amp; Modelling Workflow</div>
-        <ul style="font-size:18px; margin-left: 10px;">
-          <li><b style="color:#003049;">Land Surface Temperature (LST):</b> <span style="color:#222;">Satellite remote sensing</span></li>
-          <li><b style="color:#003049;">Socioeconomic &amp; Demographic Data:</b> <span style="color:#222;">Age structure, income (Hong Kong Census &amp; Statistics Dept.)</span></li>
-          <li><b style="color:#003049;">Urban Form Variables:</b>
-            <ul style="margin-left: 15px;">
-              <li>Building density</li>
-              <li>Green cover</li>
-              <li>NDVI</li>
-              <li>Road density</li>
+    # ------------- Section 1: Intro -------------
+    if st.session_state['page_number'] == 1:
+        up_arrow(1)
+        st.markdown(
+            """
+            <div style="display:flex; flex-direction:column; align-items:center; margin-top:70px; margin-bottom:40px;">
+                <span style="font-size:2.7rem; font-weight:bold; color:#003049; text-align:center;">
+                Urban Heatwave Susceptibility Analysis and Visualization System for Hong Kong
+                </span>
+                <span style="margin-top:40px; font-size:1.5rem; font-weight:bold; color:#457B9D;">
+                Liu Bingyi, Li Chenhan, Liang Zixin, Huang Baihui
+                </span>
+            </div>
+            """, unsafe_allow_html=True
+        )
+        st.markdown(
+            """
+            <div style="text-align:center; margin-top:30px;">
+                <span style="font-size:1.1rem; color:#222;">A comprehensive dashboard for assessing and visualizing urban heatwave vulnerability in Hong Kong, integrating climate, demographic, and socioeconomic data.</span>
+            </div>
+            """, unsafe_allow_html=True
+        )
+        st.markdown("---")
+        st.info("Use the sidebar to navigate to different sections of the dashboard.")
+        # Add the "Background & Assessment Overview" content here as part of Intro
+        img1 = get_img("img/img1.jpg")
+        img2 = get_img("img/img2.jpg")
+        col_img1, col_txt1 = st.columns([1, 2])
+        with col_img1:
+            if img1:
+                st.image(img1, use_container_width=True)
+        with col_txt1:
+            st.markdown("""
+            <span style="font-size:26px; font-weight:bold; color:#D62828;">Research Background</span>
+            <ul style="font-size:19px;">
+            <li><span style="font-weight:bold; color:#003049;">Hong Kong is experiencing increasingly frequent and intense heatwaves</span> due to climate change and rapid urbanization.</li>
+            <li>The <span style="font-weight:bold; color:#003049;">urban heat island effect</span> exacerbates high temperatures in densely populated districts.</li>
+            <li>Heatwaves pose significant health risks, especially to <span style="font-weight:bold; color:#003049;">vulnerable groups</span> such as the elderly, children, and low-income residents.</li>
             </ul>
-          </li>
-          <li><b style="color:#003049;">Data Preprocessing:</b>
-            <ul style="margin-left: 15px;">
-              <li>Outlier removal (IQR method)</li>
-              <li>Normalization (Min-Max scaling)</li>
-              <li>Spatial joining of point and district data</li>
+            <span style="font-size:26px; font-weight:bold; color:#D62828;">Objective</span>
+            <ul style="font-size:19px;">
+            <li>This dashboard aims to visualize the spatial distribution of heatwave risk and social vulnerability across Hong Kong districts.</li>
+            <li>It integrates land surface temperature, demographic, and socioeconomic data to identify communities most at risk.</li>
+            <li>Supports targeted adaptation and mitigation strategies for urban heatwave resilience.</li>
             </ul>
-          </li>
-          <li>
-            <b style="color:#003049;">Feature Selection &amp; Model Training:</b>
-            <ul style="margin-left: 15px;">
-              <li>Features: LST, Albedo, Building Density, Green Cover, NDVI, RH, Elderly Ratio, Children Ratio, Median Income</li>
-              <li><span style="font-weight:bold; color:#D62828;">Random Forest Regression</span> for LST prediction</li>
-              <li>Train-test split (80/20%) and evaluation (R², MAE, MSE)</li>
+            """, unsafe_allow_html=True)
+        st.markdown("---")
+        col_txt2, col_img2 = st.columns([2, 1])
+        with col_txt2:
+            st.markdown("""
+            <span style="font-size:26px; font-weight:bold; color:#D62828;">Heatwave Vulnerability Assessment Overview</span>
+            <ul style="font-size:19px;">
+            <li>This section provides an overview of the methodology and approach for evaluating heatwave vulnerability in Hong Kong.</li>
+            <li>The assessment integrates multiple data sources, including population demographics, land surface temperature, and urban form variables.</li>
+            <li>The goal is to identify spatial patterns of vulnerability and inform targeted adaptation strategies.</li>
             </ul>
-          </li>
-          <li>
-            <b style="color:#003049;">Vulnerability Index Construction:</b>
-            <ul style="margin-left: 15px;">
-              <li>Weighted integration of normalized LST, Elderly Ratio, Children Ratio, and Inverse Median Income</li>
-              <li style="margin-top: 3px;">Formula: <span style="color:#D62828; font-weight:bold;">VI = 0.5×LST + 0.2×Elderly + 0.2×Children + 0.1×(1-Income)</span></li>
-            </ul>
-          </li>
-          <li>
-            <b style="color:#003049;">Spatial Analysis &amp; Visualization:</b>
-            <ul style="margin-left: 15px;">
-              <li>District-level aggregation and comparison</li>
-              <li>Spatial mapping of predicted LST and vulnerability index</li>
-              <li>Boxplots and bar charts for district-wise distribution</li>
-            </ul>
-          </li>
-        </ul>
-        <div style="margin-top: 10px; font-size:18px;">
-          <b style="color:#D62828;">&#9656; This integrated workflow provides a robust, data-driven approach for urban heatwave vulnerability assessment.</b>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_data_img:
-        st.image(img3, caption="Data Integration and Modelling Workflow", use_container_width=True)
-
-    st.markdown("""
-    ---
-    <div style="font-size:22px; font-weight:bold; color:#457B9D; margin-bottom: 10px;">
-        Data Preprocessing, Model Training, and Key Results
-    </div>
-    <ul style="font-size:18px; margin-left: 10px;">
-      <li>
-        <b style="color:#003049;">Data Preprocessing:</b>
-        Outliers in LST were removed using the IQR method, and all variables were normalized to ensure comparability. Spatial joining linked point-level measurements with district-level demographic and socioeconomic data.
-      </li>
-      <li>
-        <b style="color:#003049;">Model Training:</b>
-        A Random Forest regression model was trained to predict LST from urban form and environmental variables. The model achieved strong predictive performance:
-        <ul style="margin-left: 15px;">
-          <li>Test set R² and MAE (see below for values and distribution plots)</li>
-        </ul>
-      </li>
-      <li>
-        <b style="color:#003049;">Vulnerability Index:</b>
-        The vulnerability index (VI) integrates predicted LST, elderly and children population ratios, and inverse median income, highlighting communities most at risk.
-      </li>
-      <li>
-        <b style="color:#003049;">Results Visualization:</b>
-        <ul style="margin-left: 15px;">
-          <li>Spatial maps show predicted LST and vulnerability index distributions across Hong Kong.</li>
-          <li>Bar charts and boxplots summarize district-wise vulnerability, supporting targeted adaptation strategies.</li>
-        </ul>
-      </li>
-    </ul>
-    """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
+        with col_img2:
+            if img2:
+                st.image(img2, use_container_width=True)
+        down_arrow(1)
+        return
 
     # ---------------------- Data Loading with Caching ----------------------
     @st.cache_data
@@ -186,6 +240,252 @@ def main():
         df = pd.read_csv(data_path)
         df.columns = df.columns.str.strip()
         return df
+
+    # ------------- Section 2: Model -------------
+    if st.session_state['page_number'] == 2:
+        up_arrow(2)
+        st.markdown("# Model: Evaluating Predictability of Urban Surface Temperature")
+
+        # Model Training and Results section with image
+        col_img, col_text = st.columns([1, 2])
+        with col_img:
+            img3 = get_img("img/img3.jpg")
+            if img3:
+                st.image(img3, use_container_width=True)
+        
+        with col_text:
+            st.markdown("""
+            We generated 50,000 random sampling points across the Hong Kong region and extracted environmental and urban features 
+            at each location to serve as model input. The data preprocessing process included outlier removal (via the IQR method), 
+            min-max normalization, and spatial joining to integrate geographic and socioeconomic attributes.
+            """)
+
+        # Features Used table
+        st.markdown("""
+        ### Features Used
+        
+        Below table describes the key features used in our analysis:
+        """)
+
+        feature_table = pd.DataFrame({
+            'Feature': ['LST', 'NDVI', 'Albedo', 'Building Density (CSDI)', 'Relative Humidity (RH)', 'Green Cover'],
+            'Description': [
+                'Derived from Landsat 8 thermal band (ST_B10) and calibrated to Celsius',
+                'Calculated using Landsat 8 near-infrared band (SR_B5) and red band (SR_B4)',
+                'Estimated through a weighted combination of visible and shortwave infrared bands',
+                'Density of buildings in urban areas',
+                'From the National Earth System Science Data Center',
+                'Derived by thresholding NDVI'
+            ],
+            'Scientific Rationale': [
+                'Obtained from satellite data to assess heat risk',
+                'Reflects vegetation cover, which cools the land via evapotranspiration, negatively correlated with surface temperature, mitigates urban heat island effects',
+                'Lower albedo leads to greater heat absorption, urban areas typically have lower albedo, contributing to heat accumulation',
+                'High building density reduces ventilation, increases heat retention, intensifies local heat island effects',
+                'Affects thermal comfort and heat stress risk, lower RH increases health risks under high temperatures, essential for assessing thermal vulnerability',
+                'Reflects cooling capacity in urban environments, areas with more greenery offer better thermal protection for residents'
+            ]
+        })
+        st.table(feature_table)
+
+        st.markdown("<span style='font-size:20px; font-weight:bold;'>Raw Data Preview:</span>", unsafe_allow_html=True)
+        st.markdown(
+            "<span style='font-size:16px;'>Below shows a sample of our preprocessed dataset, containing the key features "
+            "used for model training. Each row represents a sampling point with its corresponding environmental and urban "
+            "form characteristics.</span>",
+            unsafe_allow_html=True
+        )
+        df = load_training_data()
+        st.dataframe(df.head())
+
+        st.markdown("""
+        Following preprocessing, we randomly split the dataset into a training set (80%) and a test set (20%). 
+        A Random Forest Regression model was trained on the former and evaluated on the latter to assess its predictive capability.
+        """)
+
+        st.markdown("### Model Performance")
+        st.markdown("The model achieved the following evaluation results:")
+        
+        # Model training and evaluation
+        X = df[['Albedo', 'BuildingDensity', 'GreenCover', 'NDVI', 'RH']]
+        y = df['LST_Celsius']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        @st.cache_resource
+        def train_model(X_train, y_train):
+            regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+            regressor.fit(X_train, y_train)
+            return regressor
+        rf_regressor = train_model(X_train, y_train)
+        y_pred = rf_regressor.predict(X_test)
+        r2 = r2_score(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        
+        st.write(f"<span style='font-size:19px;'><b>R²:</b> {r2:.2f} – strong explanatory power</span>", unsafe_allow_html=True)
+        st.write(f"<span style='font-size:19px;'><b>Mean Absolute Error:</b> {mae:.2f}°C – low average prediction error</span>", unsafe_allow_html=True)
+
+        # LST空间分布图
+        st.markdown("### Spatial Distribution of Predicted and Actual LST:")
+        
+        # 首先处理经纬度数据
+        if '.geo' in df.columns:
+            def extract_lon_lat(geo_str):
+                try:
+                    geo_obj = json.loads(geo_str)
+                    coords = geo_obj.get('coordinates', [None, None])
+                    return pd.Series({"longitude": coords[0], "latitude": coords[1]})
+                except Exception:
+                    return pd.Series({"longitude": None, "latitude": None})
+            coords_df = df['.geo'].apply(extract_lon_lat)
+            df = pd.concat([df, coords_df], axis=1)
+
+        # 准备训练数据时保存索引
+        X = df[['Albedo', 'BuildingDensity', 'GreenCover', 'NDVI', 'RH']]
+        y = df['LST_Celsius']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        
+        # 获取测试集的索引
+        test_indices = y_test.index
+        
+        # 创建包含预测结果和经纬度的测试数据集
+        df_test = pd.DataFrame({
+            'LST_Celsius': y_test,
+            'LST_Predicted': y_pred,
+            'longitude': df.iloc[test_indices]['longitude'].values,
+            'latitude': df.iloc[test_indices]['latitude'].values
+        })
+        
+        # 创建GeoDataFrame
+        geometry = [Point(xy) for xy in zip(df_test['longitude'], df_test['latitude'])]
+        gdf = gpd.GeoDataFrame(df_test, geometry=geometry, crs="EPSG:4326")
+        
+        # 绘制地图
+        col_pred, col_actual = st.columns(2)
+        orig_LST_figsize = (5.5, 4.5)
+        LST_figsize = (orig_LST_figsize[0]*1.2, orig_LST_figsize[1]*0.8)
+        LST_figsize = (LST_figsize[0]*0.85, LST_figsize[1]*0.85)
+        def shrink(fs): return int(round(fs * 0.595))
+
+        with col_pred:
+            fig1, ax1 = plt.subplots(figsize=LST_figsize)
+            
+            # 设置固定的颜色范围
+            vmin, vmax = 25, 45
+            
+            # 创建自定义颜色映射
+            from matplotlib.colors import LinearSegmentedColormap
+            colors_lst = ['#313695', '#4575B4', '#74ADD1', '#ABD9E9', '#E0F3F8', 
+                         '#FFFFBF', '#FEE090', '#FDAE61', '#F46D43', '#D73027', '#A50026']
+            cmap_lst = LinearSegmentedColormap.from_list('custom', colors_lst)
+            
+            # 绘制预测LST
+            scatter = gdf.plot(column='LST_Predicted', cmap=cmap_lst, 
+                             legend=True, markersize=22, ax=ax1,
+                             vmin=vmin, vmax=vmax,
+                             legend_kwds={'label': "Predicted LST (°C)", 
+                                        'shrink': 0.8, 
+                                        'orientation': 'vertical',
+                                        'extend': 'both',
+                                        'ticks': range(25, 46, 5)})
+            
+            ax1.set_title("Predicted LST_Celsius", fontsize=shrink(16))
+            ax1.set_xlabel("Longitude", fontsize=shrink(13))
+            ax1.set_ylabel("Latitude", fontsize=shrink(13))
+            ax1.tick_params(axis='both', labelsize=shrink(11))
+            leg = ax1.get_legend()
+            if leg is not None:
+                for t in leg.get_texts():
+                    t.set_fontsize(shrink(13))
+                leg.set_title(leg.get_title().get_text(), prop={'size': shrink(14)})
+            plt.tight_layout()
+            st.pyplot(fig1)
+
+        with col_actual:
+            fig2, ax2 = plt.subplots(figsize=LST_figsize)
+            
+            # 绘制实际LST
+            scatter = gdf.plot(column='LST_Celsius', cmap=cmap_lst,
+                             legend=True, markersize=22, ax=ax2,
+                             vmin=vmin, vmax=vmax,
+                             legend_kwds={'label': "Actual LST (°C)", 
+                                        'shrink': 0.8, 
+                                        'orientation': 'vertical',
+                                        'extend': 'both',
+                                        'ticks': range(25, 46, 5)})
+            
+            ax2.set_title("Actual LST_Celsius", fontsize=shrink(16))
+            ax2.set_xlabel("Longitude", fontsize=shrink(13))
+            ax2.set_ylabel("Latitude", fontsize=shrink(13))
+            ax2.tick_params(axis='both', labelsize=shrink(11))
+            leg = ax2.get_legend()
+            if leg is not None:
+                for t in leg.get_texts():
+                    t.set_fontsize(shrink(13))
+                leg.set_title(leg.get_title().get_text(), prop={'size': shrink(14)})
+            plt.tight_layout()
+            st.pyplot(fig2)
+
+        st.caption("<span style='font-size:17px;'>The predicted temperature patterns closely resemble the observed distribution, especially in areas with high building density and low vegetation, suggesting that urban form variables contribute significantly to heat variation.</span>", unsafe_allow_html=True)
+
+        # Feature importance analysis
+        st.markdown("### Insights from Feature Importance")
+        st.markdown("We analyzed which features most influenced LST predictions. The feature importance chart provides insights into the drivers of urban heat.")
+
+        importances = rf_regressor.feature_importances_
+        feature_names = ['Albedo', 'BuildingDensity', 'GreenCover', 'NDVI', 'RH']
+        feature_importance_df = pd.DataFrame({
+            'Feature': feature_names,
+            'Importance': importances
+        }).sort_values(by='Importance', ascending=True)
+
+        # 创建从绿到红的颜色映射
+        colors = plt.cm.RdYlGn_r(np.linspace(0, 1, len(feature_importance_df)))
+
+        # 减小图形尺寸20%
+        orig_figsize = (8, 6)
+        new_figsize = (orig_figsize[0], orig_figsize[1] * 0.8)  # 只减小高度
+        
+        fig_imp = plt.figure(figsize=new_figsize)
+        # 调整子图的位置，减少上下空白
+        plt.subplots_adjust(top=0.95, bottom=0.15)
+        
+        bars = plt.barh(feature_importance_df['Feature'], 
+                       feature_importance_df['Importance'], 
+                       color=colors,
+                       height=0.6)  # 减小条形的高度
+
+        # 减小文字大小20%
+        orig_fontsize = 10
+        new_fontsize = orig_fontsize * 0.8
+        
+        for bar in bars:
+            width = bar.get_width()
+            plt.text(width + 0.005,
+                    bar.get_y() + bar.get_height() / 2,
+                    f'{width:.3f}',
+                    va='center', ha='left', fontsize=new_fontsize)
+
+        plt.xlabel('Feature Importance', fontsize=new_fontsize)
+        plt.title('Feature Importance from Random Forest Model', fontsize=new_fontsize * 1.2)
+        plt.xticks(fontsize=new_fontsize)
+        plt.yticks(fontsize=new_fontsize)
+        plt.xlim(0, max(importances) + 0.05)
+        plt.tight_layout()
+        st.pyplot(fig_imp)
+
+        st.markdown("""
+        <div style="font-size: 0.9em;">
+        As what we can see from the chart, The model revealed:
+        1. Vegetation-related factors (NDVI, Green Cover) had the strongest cooling effects
+        2. Building Density and Albedo contributed significantly to higher temperatures
+        3. Relative Humidity played a secondary role
+
+        These findings directly inform the construction of the Heatwave Vulnerability Index, which combines environmental 
+        heat and social sensitivity in the next stage of the analysis.
+        </div>
+        """, unsafe_allow_html=True)
+
+        down_arrow(2)
+        return
 
     @st.cache_data
     def load_pop_and_boundary():
@@ -286,228 +586,220 @@ def main():
         )
         return gdf_with_district, districts_gdf
 
-    # ---------------------- Visualization Sections ----------------------
+    # ------------- Section 3: Vulnerability Index -------------
+    if st.session_state['page_number'] == 3:
+        up_arrow(3)
+        
+        # Title and initial description
+        st.markdown("""
+        # Urban Heatwave Vulnerability Index Construction and Spatial Analysis
+        
+        To systematically assess the urban population's vulnerability to extreme heat events, we constructed a **Heatwave Vulnerability Index (VI)** using a weighted combination of multiple environmental and socioeconomic indicators.
+        """)
+        
+        # Indicator Design and Components
+        st.markdown("""
+        ### • Indicator Design and Rationale
+        
+        Following IPCC's conceptual framework, vulnerability is determined by three components:
+        
+        1. → **Exposure** – measured by predicted land surface temperature (LST), which reflects ambient heat risk.
+        
+        2. → **Sensitivity** – represented by the proportions of elderly (65+) and children (0–14), who are more physiologically vulnerable to heat.
+        
+        3. → **Adaptive Capacity** – inversely represented by median household income, assuming that lower income groups are less equipped to cope.
+        """)
+        
+        # Formula and Weights
+        st.markdown("The final VI is calculated as:")
+        
+        st.markdown("""
+        <div style="text-align: center; font-size: 1.1em; margin: 20px 0; font-style: italic;">
+        VI = w1 * LST + w2 * Elderly + w3 * Children + w4 * Income
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("Weights (wi) are user-defined (default: 0.5, 0.2, 0.2, 0.1) and sum to 1.0.")
 
-    st.subheader("Model Training & Data Preprocessing")
-    st.write("Below are the steps and results from model training and data preparation:")
-    df = load_training_data()
-    st.markdown("<span style='font-size:20px; font-weight:bold;'>Raw Data Preview:</span>", unsafe_allow_html=True)
-    st.markdown(
-        "<span style='font-size:16px;'>This table shows a sample of the raw data used for model training and analysis. "
-        "Columns include land surface temperature (LST), urban form variables, and geospatial coordinates. "
-        "The data is preprocessed before use in the vulnerability assessment workflow.</span>",
-        unsafe_allow_html=True,
-    )
-    st.dataframe(df.head())
-    # Extract lon/lat
-    if '.geo' in df.columns:
-        def extract_lon_lat(geo_str):
-            try:
-                geo_obj = json.loads(geo_str)
-                coords = geo_obj.get('coordinates', [None, None])
-                return pd.Series({"longitude": coords[0], "latitude": coords[1]})
-            except Exception:
-                return pd.Series({"longitude": None, "latitude": None})
-        coords_df = df['.geo'].apply(extract_lon_lat)
-        df = pd.concat([df, coords_df], axis=1)
-    required_cols = ['LST_Celsius', 'Albedo', 'BuildingDensity', 'GreenCover', 'NDVI', 'RH', 'longitude', 'latitude']
-    missing = [col for col in required_cols if col not in df.columns]
-    if missing:
-        st.warning(f"Missing required columns: {missing}")
-    df = df.dropna(subset=required_cols)
-    Q1 = df['LST_Celsius'].quantile(0.25)
-    Q3 = df['LST_Celsius'].quantile(0.75)
-    IQR = Q3 - Q1
-    lower_bound = Q1 - 1.5 * IQR
-    upper_bound = Q3 + 1.5 * IQR
-    df = df[(df['LST_Celsius'] >= lower_bound) & (df['LST_Celsius'] <= upper_bound)]
-    st.write(f"After outlier removal, sample count: {len(df)}")
-    X = df[['Albedo', 'BuildingDensity', 'GreenCover', 'NDVI', 'RH']]
-    y = df['LST_Celsius']
-    X_train, X_test, y_train, y_test, df_train, df_test = train_test_split(
-        X, y, df, test_size=0.2, random_state=42
-    )
-    @st.cache_resource
-    def train_model(X_train, y_train):
-        regressor = RandomForestRegressor(n_estimators=100, random_state=42)
-        regressor.fit(X_train, y_train)
-        return regressor
-    rf_regressor = train_model(X_train, y_train)
-    y_pred = rf_regressor.predict(X_test)
-    r2 = r2_score(y_test, y_pred)
-    mae = mean_absolute_error(y_test, y_pred)
-    st.write(f"<span style='font-size:19px;'><b>Test set R²:</b> {r2:.2f}</span>", unsafe_allow_html=True)
-    st.write(f"<span style='font-size:19px;'><b>Test set MAE:</b> {mae:.2f}</span>", unsafe_allow_html=True)
-    df_test = df_test.copy()
-    df_test['LST_Predicted'] = y_pred
-    st.markdown("<span style='font-size:20px; font-weight:bold;'>Test Set Actual vs Predicted LST_Celsius Statistics:</span>", unsafe_allow_html=True)
-    st.write(df_test[['LST_Celsius', 'LST_Predicted']].describe())
-    # Plot actual vs predicted spatial
-    st.markdown("<span style='font-size:20px; font-weight:bold;'>Spatial Distribution of Predicted and Actual LST:</span>", unsafe_allow_html=True)
-    geometry = [Point(xy) for xy in zip(df_test['longitude'], df_test['latitude'])]
-    gdf = gpd.GeoDataFrame(df_test, geometry=geometry, crs="EPSG:4326")
-    # Arrange the two LST maps side by side and adjust their size for better layout
-    col_pred, col_actual = st.columns(2)
-    # Adjust LST_figsize: width +20%, height -20%, then shrink by 15%
-    orig_LST_figsize = (5.5, 4.5)
-    LST_figsize = (orig_LST_figsize[0] * 1.2, orig_LST_figsize[1] * 0.8)
-    LST_figsize = (LST_figsize[0] * 0.85, LST_figsize[1] * 0.85)
-    # Font sizes: shrink by 30% then by 15% (total shrink = 0.7 * 0.85 = 0.595)
-    def shrink(fs): return int(round(fs * 0.595))
-    with col_pred:
-        fig1, ax1 = plt.subplots(figsize=LST_figsize)
-        gdf.plot(column='LST_Predicted', cmap='coolwarm', legend=True, markersize=22, ax=ax1,
-                 legend_kwds={'label': "Predicted LST (°C)", 'shrink': 0.8, 'orientation': 'vertical'})
-        # Title: break line at parentheses to avoid overlap with legend
-        ax1.set_title("Predicted LST_Celsius", fontsize=shrink(16))
-        ax1.set_xlabel("Longitude", fontsize=shrink(13))
-        ax1.set_ylabel("Latitude", fontsize=shrink(13))
-        ax1.tick_params(axis='both', labelsize=shrink(11))
-        # Make legend font larger (but shrink by 30%)
-        leg = ax1.get_legend()
+        st.markdown("### Heatwave Vulnerability Index: Spatial and District Results")
+        
+        st.markdown("""
+        This map shows the pointwise distribution of the VI across the study area. High VI values concentrate in districts with:
+        
+        • **Areas of higher vulnerability are concentrated in:** high surface temperatures, high elderly populations, and lower income segments. For example, Tuen Mun, Sham Shui Po, Kwun Tong and Kowloon City districts are high-risk hotspots;
+        
+        • **Areas with more green space and lower LST** (e.g. Sai Kung, Wan Chai, and Central and Western Districts) show lower vulnerability.
+        """)
+
+        gdf_with_district, districts_gdf = get_vulnerability_gdf()
+        orig_map_figsize = (8, 6.4)
+        map_figsize = (orig_map_figsize[0]*1.2, orig_map_figsize[1]*0.8)
+        map_figsize = (map_figsize[0]*0.85, map_figsize[1]*0.85)
+        fig_map, ax_map = plt.subplots(figsize=map_figsize)
+        
+        # 定义shrink函数
+        def shrink(fs): return int(round(fs * 0.595))
+        
+        districts_gdf.boundary.plot(ax=ax_map, linewidth=1, color='black')
+        norm = colors.Normalize(
+            vmin=gdf_with_district['Vulnerability_Index'].min(),
+            vmax=gdf_with_district['Vulnerability_Index'].max()
+        )
+        cmap = cm.get_cmap('RdYlGn_r')
+        gdf_with_district.plot(
+            ax=ax_map,
+            column='Vulnerability_Index',
+            cmap=cmap,
+            norm=norm,
+            markersize=14,
+            alpha=0.7,
+            legend=True,
+            legend_kwds={
+                'label': 'Urban Heatwave Vulnerability Index',
+                'orientation': 'vertical',
+                'shrink': 0.8,
+                'extend': 'both',
+                'ticks': np.arange(0.2, 0.9, 0.1)
+            }
+        )
+        ax_map.set_title("Urban Heatwave Vulnerability Map (Static)", fontsize=shrink(22))
+        ax_map.set_xlabel("Longitude", fontsize=shrink(17))
+        ax_map.set_ylabel("Latitude", fontsize=shrink(17))
+        ax_map.tick_params(axis='both', labelsize=shrink(14))
+        
+        # 调整图例字体大小
+        leg = ax_map.get_legend()
         if leg is not None:
             for t in leg.get_texts():
                 t.set_fontsize(shrink(13))
             leg.set_title(leg.get_title().get_text(), prop={'size': shrink(14)})
+        
+        ax_map.set_aspect('equal', adjustable='datalim')
         plt.tight_layout()
-        st.pyplot(fig1)
-        st.caption("<span style='font-size:17px;'>Predicted Land Surface Temperature (LST) values across Hong Kong, generated by the Random Forest regression model using urban form and environmental predictors.</span>", unsafe_allow_html=True)
-    with col_actual:
-        fig2, ax2 = plt.subplots(figsize=LST_figsize)
-        gdf.plot(column='LST_Celsius', cmap='coolwarm', legend=True, markersize=22, ax=ax2,
-                 legend_kwds={'label': "Actual LST (°C)", 'shrink': 0.8, 'orientation': 'vertical'})
-        ax2.set_title("Actual LST_Celsius", fontsize=shrink(16))
-        ax2.set_xlabel("Longitude", fontsize=shrink(13))
-        ax2.set_ylabel("Latitude", fontsize=shrink(13))
-        ax2.tick_params(axis='both', labelsize=shrink(11))
-        leg = ax2.get_legend()
-        if leg is not None:
-            for t in leg.get_texts():
-                t.set_fontsize(shrink(13))
-            leg.set_title(leg.get_title().get_text(), prop={'size': shrink(14)})
-        plt.tight_layout()
-        st.pyplot(fig2)
-        st.caption("<span style='font-size:17px;'>Actual observed LST values from satellite remote sensing, showing the measured spatial pattern of surface temperature.</span>", unsafe_allow_html=True)
+        st.pyplot(fig_map)
+        st.caption("<span style='font-size:17px;'>This map visualizes the spatial distribution of the Urban Heatwave Vulnerability Index, highlighting areas where demographic, socioeconomic, and thermal risk factors combine to increase vulnerability.</span>", unsafe_allow_html=True)
 
-    st.subheader("Heatwave Vulnerability Index: Spatial and District Results")
-    gdf_with_district, districts_gdf = get_vulnerability_gdf()
-    # Vulnerability map: adjust figure size and shrink all text by 30% then by 15%
-    # Original size: (8, 6.4) -> width *1.2, height *0.8, then *0.85
-    orig_map_figsize = (8, 6.4)
-    map_figsize = (orig_map_figsize[0]*1.2, orig_map_figsize[1]*0.8)
-    map_figsize = (map_figsize[0]*0.85, map_figsize[1]*0.85)
-    fig_map, ax_map = plt.subplots(figsize=map_figsize)
-    districts_gdf.boundary.plot(ax=ax_map, linewidth=1, color='black')
-    norm = colors.Normalize(
-        vmin=gdf_with_district['Vulnerability_Index'].min(),
-        vmax=gdf_with_district['Vulnerability_Index'].max()
-    )
-    cmap = cm.get_cmap('RdYlGn_r')
-    gdf_with_district.plot(
-        ax=ax_map,
-        column='Vulnerability_Index',
-        cmap=cmap,
-        norm=norm,
-        markersize=14,
-        alpha=0.7,
-        legend=False
-    )
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm._A = []
-    cbar = fig_map.colorbar(sm, ax=ax_map, fraction=0.025, pad=0.01)
-    # Shrink font sizes by 30% then by 15%
-    def shrink(fs): return int(round(fs * 0.595))
-    cbar.set_label('Urban Heatwave Vulnerability Index', fontsize=shrink(16))
-    cbar.ax.tick_params(labelsize=shrink(15))
-    ax_map.set_title("Urban Heatwave Vulnerability Map (Static)", fontsize=shrink(22))
-    ax_map.set_xlabel("Longitude", fontsize=shrink(17))
-    ax_map.set_ylabel("Latitude", fontsize=shrink(17))
-    ax_map.tick_params(axis='both', labelsize=shrink(14))
-    ax_map.set_aspect('equal', adjustable='datalim')
-    plt.tight_layout()
-    st.pyplot(fig_map)
-    st.caption("<span style='font-size:17px;'>This map visualizes the spatial distribution of the Urban Heatwave Vulnerability Index, highlighting areas where demographic, socioeconomic, and thermal risk factors combine to increase vulnerability.</span>", unsafe_allow_html=True)
+        col_bar, col_box = st.columns(2)
+        def shrink(fs): return int(round(fs * 0.595))
+        with col_bar:
+            st.markdown("<span style='font-size:20px; font-weight:bold;'>District-wise Average Vulnerability Index:</span>", unsafe_allow_html=True)
+            gdf_with_district, _ = get_vulnerability_gdf()
+            valid_gdf = gdf_with_district[['District', 'Vulnerability_Index']].dropna()
+            valid_gdf = valid_gdf[valid_gdf['District'].notnull() & (valid_gdf['District'] != "")]
+            district_mean = valid_gdf.groupby('District')['Vulnerability_Index'].mean()
+            district_mean = district_mean.dropna()
+            district_mean = district_mean.sort_values(ascending=False)
+            district_mean = district_mean[district_mean.index != ""]
+            norm = colors.Normalize(vmin=district_mean.min(), vmax=district_mean.max())
+            cmap = cm.get_cmap('RdYlGn_r')
+            bar_colors = [cmap(norm(value)) for value in district_mean]
+            orig_bar_figsize = (5.3, 3.7)
+            bar_figsize = (orig_bar_figsize[0], orig_bar_figsize[1]*1.2)
+            fig, ax = plt.subplots(figsize=bar_figsize)
+            district_mean.plot(kind='bar', color=bar_colors, ax=ax)
+            ax.set_title("Average Vulnerability Index by District", fontsize=shrink(15))
+            ax.set_xlabel("District", fontsize=shrink(12))
+            ax.set_ylabel("Average Vulnerability Index", fontsize=shrink(12))
+            ax.tick_params(axis='x', labelsize=shrink(9))
+            ax.tick_params(axis='y', labelsize=shrink(11))
+            ymin = max(0, district_mean.min() - 0.01)
+            ymax = min(1, district_mean.max() + 0.01)
+            ax.set_ylim(ymin, ymax)
+            plt.xticks(rotation=45, ha='right')
+            plt.grid(axis='y', linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            st.pyplot(fig)
+            st.caption("""
+            <span style='font-size:17px;'>
+            • Tuen Mun, Sham Shui Po, Kwun Tong and Kowloon City districts are characterized by significantly higher-than-average combined vulnerability. These districts tend to be characterized by: high population density, high proportion of elderly people, and poor green space coverage;
+            
+            • Comparatively speaking, the Wan Chai, Central and Western, and Sai Kung districts have lower vulnerability, and their living environment is more conducive to coping with heat waves.
+            </span>
+            """, unsafe_allow_html=True)
+            csv = district_mean.reset_index().to_csv(index=False)
+            st.download_button(
+                label="Download District Vulnerability CSV",
+                data=csv,
+                file_name='district_vulnerability.csv',
+                mime='text/csv',
+            )
 
-    # Arrange the bar chart and boxplot side by side, reduce their size, and add captions
-    col_bar, col_box = st.columns(2)
-    # Shrink function for font sizes (30% then 15%)
-    def shrink(fs): return int(round(fs * 0.595))
-    with col_bar:
-        st.markdown("<span style='font-size:20px; font-weight:bold;'>District-wise Average Vulnerability Index:</span>", unsafe_allow_html=True)
-        gdf_with_district, _ = get_vulnerability_gdf()
-        # Remove empty or invalid values before plotting
-        valid_gdf = gdf_with_district[['District', 'Vulnerability_Index']].dropna()
-        # Remove empty or invalid district names
-        valid_gdf = valid_gdf[valid_gdf['District'].notnull() & (valid_gdf['District'] != "")]
-        district_mean = valid_gdf.groupby('District')['Vulnerability_Index'].mean()
-        # Remove any districts with NaN mean
-        district_mean = district_mean.dropna()
-        # Sort the district_mean
-        district_mean = district_mean.sort_values(ascending=False)
-        # Remove any empty columns
-        district_mean = district_mean[district_mean.index != ""]
-        norm = colors.Normalize(vmin=district_mean.min(), vmax=district_mean.max())
-        cmap = cm.get_cmap('RdYlGn_r')
-        bar_colors = [cmap(norm(value)) for value in district_mean]
-        # Adjust figure size: width unchanged, height increased by 50%
-        orig_bar_figsize = (5.3, 3.7)
-        bar_figsize = (orig_bar_figsize[0], orig_bar_figsize[1]*1.2)
-        fig, ax = plt.subplots(figsize=bar_figsize)
-        district_mean.plot(kind='bar', color=bar_colors, ax=ax)
-        ax.set_title("Average Vulnerability Index by District", fontsize=shrink(15))
-        ax.set_xlabel("District", fontsize=shrink(12))
-        ax.set_ylabel("Average Vulnerability Index", fontsize=shrink(12))
-        # Reduce x-axis (district) label font size
-        ax.tick_params(axis='x', labelsize=shrink(9))
-        ax.tick_params(axis='y', labelsize=shrink(11))
-        ymin = max(0, district_mean.min() - 0.01)
-        ymax = min(1, district_mean.max() + 0.01)
-        ax.set_ylim(ymin, ymax)
-        plt.xticks(rotation=45, ha='right')
-        plt.grid(axis='y', linestyle='--', alpha=0.7)
-        plt.tight_layout()
-        st.pyplot(fig)
-        st.caption("<span style='font-size:17px;'>Bar chart showing the mean heatwave vulnerability index for each district. Higher values indicate greater vulnerability due to combined thermal and social risk factors.</span>", unsafe_allow_html=True)
-        csv = district_mean.reset_index().to_csv(index=False)
-        st.download_button(
-            label="Download District Vulnerability CSV",
-            data=csv,
-            file_name='district_vulnerability.csv',
-            mime='text/csv',
-        )
+        with col_box:
+            st.markdown("<span style='font-size:20px; font-weight:bold;'>Distribution of Vulnerability Index:</span>", unsafe_allow_html=True)
+            gdf_with_district, _ = get_vulnerability_gdf()
+            district_vi = gdf_with_district[['District', 'Vulnerability_Index']].dropna()
+            district_order = district_vi.groupby('District')['Vulnerability_Index'].mean().sort_values(ascending=False).index
+            mean_values = district_vi.groupby('District')['Vulnerability_Index'].mean()
+            norm = colors.Normalize(vmin=mean_values.min(), vmax=mean_values.max())
+            cmap = cm.get_cmap('RdYlGn_r')
+            palette = {district: cmap(norm(value)) for district, value in mean_values.items()}
+            orig_box_figsize = (5.3, 3.7)
+            box_figsize = (orig_box_figsize[0], orig_box_figsize[1]*1.2)
+            fig, ax = plt.subplots(figsize=box_figsize)
+            sns.boxplot(
+                data=district_vi,
+                x='District',
+                y='Vulnerability_Index',
+                order=district_order,
+                palette=palette,
+                showfliers=False
+            )
+            ax.set_title("Vulnerability Index Distribution by District", fontsize=shrink(15))
+            ax.set_xlabel("District", fontsize=shrink(12))
+            ax.set_ylabel("Vulnerability Index", fontsize=shrink(12))
+            ax.tick_params(axis='x', labelsize=shrink(9))
+            ax.tick_params(axis='y', labelsize=shrink(11))
+            plt.xticks(rotation=45, ha='right')
+            plt.grid(axis='y', linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            st.pyplot(fig)
+            st.caption("""
+            <span style='font-size:17px;'>
+            • Districts such as Wong Tai Sin, Sham Shui Po and Kwai Tsing have a large span of box lines and significant internal imbalances;
+            
+            • Some districts (e.g. Sai Kung and Island) have a relatively concentrated distribution, indicating a more balanced internal thermal risk.
+            </span>
+            """, unsafe_allow_html=True)
+        down_arrow(3)
+        return
 
-    with col_box:
-        st.markdown("<span style='font-size:20px; font-weight:bold;'>Distribution of Vulnerability Index in Districts:</span>", unsafe_allow_html=True)
-        gdf_with_district, _ = get_vulnerability_gdf()
-        district_vi = gdf_with_district[['District', 'Vulnerability_Index']].dropna()
-        district_order = district_vi.groupby('District')['Vulnerability_Index'].mean().sort_values(ascending=False).index
-        mean_values = district_vi.groupby('District')['Vulnerability_Index'].mean()
-        norm = colors.Normalize(vmin=mean_values.min(), vmax=mean_values.max())
-        cmap = cm.get_cmap('RdYlGn_r')
-        palette = {district: cmap(norm(value)) for district, value in mean_values.items()}
-        # Adjust figure size: width unchanged, height increased by 50%
-        orig_box_figsize = (5.3, 3.7)
-        box_figsize = (orig_box_figsize[0], orig_box_figsize[1]*1.2)
-        fig, ax = plt.subplots(figsize=box_figsize)
-        sns.boxplot(
-            data=district_vi,
-            x='District',
-            y='Vulnerability_Index',
-            order=district_order,
-            palette=palette,
-            showfliers=False
-        )
-        ax.set_title("Vulnerability Index Distribution by District", fontsize=shrink(15))
-        ax.set_xlabel("District", fontsize=shrink(12))
-        ax.set_ylabel("Vulnerability Index", fontsize=shrink(12))
-        # Reduce x-axis (district) label font size
-        ax.tick_params(axis='x', labelsize=shrink(9))
-        ax.tick_params(axis='y', labelsize=shrink(11))
-        plt.xticks(rotation=45, ha='right')
-        plt.grid(axis='y', linestyle='--', alpha=0.7)
-        plt.tight_layout()
-        st.pyplot(fig)
-        st.caption("<span style='font-size:17px;'>Boxplot visualizing the spread and variability of vulnerability index scores within each district, identifying both high-risk and lower-risk areas.</span>", unsafe_allow_html=True)
+    # ------------- Section 4: Conclusion -------------
+    if st.session_state['page_number'] == 4:
+        up_arrow(4)
+        st.markdown("""
+        <div style="font-size:20px; line-height:1.8; padding: 30px;">
+        <p style="margin-bottom:20px;">
+        This heatwave vulnerability assessment reveals several key findings:
+        </p>
+
+        <p style="margin-bottom:15px;">
+        1. <b style="color:#D62828;">Distribution Pattern:</b><br>
+        Heat risk in cities is <b style="color:#003049;">not uniformly distributed</b>, but is influenced by a combination of:
+        <ul style="margin-left:25px; margin-top:10px;">
+            <li><b style="color:#003049;">Environmental conditions</b></li>
+            <li><b style="color:#003049;">Demographic factors</b></li>
+            <li><b style="color:#003049;">Socio-economic conditions</b></li>
+        </ul>
+        </p>
+
+        <p style="margin-bottom:15px;">
+        2. <b style="color:#D62828;">Strategic Implications:</b><br>
+        The identification of <b style="color:#003049;">high-risk areas</b> can help to realize more targeted adaptation strategies, particularly in areas where:
+        <ul style="margin-left:25px; margin-top:10px;">
+            <li>High heat exposure</li>
+            <li>High sensitivity</li>
+        </ul>
+        coexist.
+        </p>
+
+        <p style="margin-bottom:15px;">
+        3. <b style="color:#D62828;">Policy Focus:</b><br>
+        Urban policies should prioritize enhancing the <b style="color:#003049;">stress-bearing capacity</b> of these vulnerable areas.
+        </p>
+        </div>
+        """, unsafe_allow_html=True)
+        down_arrow(4)
+        return
 
 
 # Streamlit app entry point
