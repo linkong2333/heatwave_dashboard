@@ -241,7 +241,7 @@ def main():
         df.columns = df.columns.str.strip()
         return df
 
-    # ------------- Section 2: Model -------------
+    # ------------- Section 2: Model ---------------------
     if st.session_state['page_number'] == 2:
         up_arrow(2)
         st.markdown("# Model: Evaluating Predictability of Urban Surface Temperature")
