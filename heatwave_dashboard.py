@@ -641,8 +641,8 @@ def main():
         
         districts_gdf.boundary.plot(ax=ax_map, linewidth=1, color='black')
         norm = colors.Normalize(
-            vmin=gdf_with_district['Vulnerability_Index'].min(),
-            vmax=gdf_with_district['Vulnerability_Index'].max()
+            vmin=0.35,
+            vmax=0.75 # 调Colorbar范围
         )
         cmap = cm.get_cmap('RdYlGn_r')
         gdf_with_district.plot(
@@ -658,7 +658,7 @@ def main():
                 'orientation': 'vertical',
                 'shrink': 0.8,
                 'extend': 'both',
-                'ticks': np.arange(0.2, 0.9, 0.1)
+                'ticks': np.arange(0.3, 0.9, 0.1)
             }
         )
         ax_map.set_title("Urban Heatwave Vulnerability Map (Static)", fontsize=shrink(22))
