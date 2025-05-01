@@ -211,9 +211,9 @@ def main():
             </ul>
             <span style="font-size:26px; font-weight:bold; color:#D62828;">Objective</span>
             <ul style="font-size:19px;">
-            <li>This dashboard aims to visualize the spatial distribution of heatwave risk and social vulnerability across Hong Kong districts.</li>
-            <li>It integrates land surface temperature, demographic, and socioeconomic data to identify communities most at risk.</li>
-            <li>Supports targeted adaptation and mitigation strategies for urban heatwave resilience.</li>
+            <li>This dashboard aims to <b style="color:#003049;">visualize the spatial distribution of heatwave risk</b> and <b style="color:#003049;">social vulnerability</b> across Hong Kong districts.</li>
+            <li>It <b style="color:#003049;">integrates land surface temperature, demographic, and socioeconomic data</b> to identify communities most at risk.</li>
+            <li>Supports <b style="color:#003049;">targeted adaptation and mitigation strategies</b> for urban heatwave resilience.</li>
             </ul>
             """, unsafe_allow_html=True)
         st.markdown("---")
@@ -222,9 +222,9 @@ def main():
             st.markdown("""
             <span style="font-size:26px; font-weight:bold; color:#D62828;">Heatwave Vulnerability Assessment Overview</span>
             <ul style="font-size:19px;">
-            <li>This section provides an overview of the methodology and approach for evaluating heatwave vulnerability in Hong Kong.</li>
-            <li>The assessment integrates multiple data sources, including population demographics, land surface temperature, and urban form variables.</li>
-            <li>The goal is to identify spatial patterns of vulnerability and inform targeted adaptation strategies.</li>
+            <li>This section provides an overview of the <b style="color:#003049;">methodology and approach</b> for evaluating heatwave vulnerability in Hong Kong.</li>
+            <li>The assessment <b style="color:#003049;">integrates multiple data sources</b>, including <b style="color:#003049;">population demographics, land surface temperature, and urban form variables</b>.</li>
+            <li>The goal is to identify <b style="color:#003049;">spatial patterns of vulnerability</b> and inform <b style="color:#003049;">targeted adaptation strategies</b>.</li>
             </ul>
             """, unsafe_allow_html=True)
         with col_img2:
@@ -246,19 +246,18 @@ def main():
         up_arrow(2)
         st.markdown("# Model: Evaluating Predictability of Urban Surface Temperature")
 
-        # Model Training and Results section with image
-        col_img, col_text = st.columns([1, 2])
-        with col_img:
-            img3 = get_img("img/img3.jpg")
-            if img3:
-                st.image(img3, use_container_width=True)
-        
-        with col_text:
-            st.markdown("""
-            We generated 50,000 random sampling points across the Hong Kong region and extracted environmental and urban features 
-            at each location to serve as model input. The data preprocessing process included outlier removal (via the IQR method), 
-            min-max normalization, and spatial joining to integrate geographic and socioeconomic attributes.
-            """)
+        st.markdown("""
+        We generated 50,000 random sampling points across the Hong Kong region and extracted environmental and urban features 
+        at each location to serve as model input. The data preprocessing process included outlier removal (via the IQR method), 
+        min-max normalization, and spatial joining to integrate geographic and socioeconomic attributes.
+        """)
+
+        # Display img3 with centered alignment and reduced size
+        img3 = get_img("img/img3.jpg")
+        if img3:
+            col1, col2, col3 = st.columns([1,7,1])
+            with col2:
+                st.image(img3, width=int(img3.width * 0.96))  # 0.8 * 1.2 = 0.96
 
         # Features Used table
         st.markdown("""
@@ -784,17 +783,17 @@ def main():
 
         <p style="margin-bottom:15px;">
         2. <b style="color:#D62828;">Strategic Implications:</b><br>
-        The identification of <b style="color:#003049;">high-risk areas</b> can help to realize more targeted adaptation strategies, particularly in areas where:
-        <ul style="margin-left:25px; margin-top:10px;">
-            <li>High heat exposure</li>
-            <li>High sensitivity</li>
-        </ul>
-        coexist.
+        Identifying <b style="color:#003049;">high-risk areas</b>, such as <b style="color:#003049;">Tuen Mun, Sham Shui Po, Kwun Tong, and Kowloon City</b>, where both <b style="color:#003049;">heat exposure and population sensitivity</b> are high, allows for more <b style="color:#003049;">targeted adaptation strategies</b> and resource allocation.
         </p>
 
         <p style="margin-bottom:15px;">
         3. <b style="color:#D62828;">Policy Focus:</b><br>
-        Urban policies should prioritize enhancing the <b style="color:#003049;">stress-bearing capacity</b> of these vulnerable areas.
+        Urban policymakers should prioritize <b style="color:#003049;">enhancing the stress-bearing capacity of vulnerable communities</b>. Recommended actions include:
+        <ul style="margin-left:25px; margin-top:10px;">
+            <li><b style="color:#003049;">Expanding urban green infrastructure</b> and cooling measures</li>
+            <li>Delivering <b style="color:#003049;">targeted support for heat-sensitive groups</b> (e.g., elderly and low-income households)</li>
+            <li><b style="color:#003049;">Integrating vulnerability assessments</b> into urban planning and disaster preparedness frameworks</li>
+        </ul>
         </p>
         </div>
         """, unsafe_allow_html=True)
