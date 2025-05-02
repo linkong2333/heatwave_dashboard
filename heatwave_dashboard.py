@@ -217,19 +217,46 @@ def main():
             </ul>
             """, unsafe_allow_html=True)
         st.markdown("---")
-        col_txt2, col_img2 = st.columns([2, 1])
-        with col_txt2:
-            st.markdown("""
-            <span style="font-size:26px; font-weight:bold; color:#D62828;">Heatwave Vulnerability Assessment Overview</span>
-            <ul style="font-size:19px;">
-            <li>This section provides an overview of the <b style="color:#003049;">methodology and approach</b> for evaluating heatwave vulnerability in Hong Kong.</li>
-            <li>The assessment <b style="color:#003049;">integrates multiple data sources</b>, including <b style="color:#003049;">population demographics, land surface temperature, and urban form variables</b>.</li>
-            <li>The goal is to identify <b style="color:#003049;">spatial patterns of vulnerability</b> and inform <b style="color:#003049;">targeted adaptation strategies</b>.</li>
-            </ul>
-            """, unsafe_allow_html=True)
-        with col_img2:
-            if img2:
-                st.image(img2, use_container_width=True)
+        # 移除列布局，直接显示内容
+        st.markdown("""
+        <style>
+        .overview-list {
+            list-style-type: disc !important;
+            padding-left: 1.2em !important;
+            margin-top: 1em !important;
+        }
+        .overview-list li {
+            padding-left: 0.5em !important;
+            margin-bottom: 1em !important;
+            display: list-item !important;
+            color: black !important;
+        }
+        .overview-list li::marker {
+            color: black !important;
+        }
+        </style>
+        <div>
+        <span style="font-size:26px; font-weight:bold; color:#D62828;">Heatwave Vulnerability Assessment Overview</span>
+        <ul class="overview-list" style="font-size:19px;">
+        <li>This section provides an overview of the <b style="color:#003049;">methodology and approach</b> for evaluating heatwave vulnerability in Hong Kong.</li>
+        <li>The assessment <b style="color:#003049;">integrates multiple data sources</b>, including <b style="color:#003049;">population demographics, land surface temperature, and urban form variables</b>.</li>
+        <li>The goal is to identify <b style="color:#003049;">spatial patterns of vulnerability</b> and inform <b style="color:#003049;">targeted adaptation strategies</b>.</li>
+        </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Display img3 with centered alignment and reduced size
+        img3 = get_img("img/img3.jpg")
+        if img3:
+            col1, col2, col3 = st.columns([1,7,1])
+            with col2:
+                st.image(img3, width=int(img3.width * 0.96))
+                st.markdown("""
+                <div style="text-align: center; color: #666666; font-size: 0.9em; margin-top: -10px;">
+                Technical Roadmap: Data Processing and Model Development Pipeline
+                </div>
+                """, unsafe_allow_html=True)
+
         down_arrow(1)
         return
 
@@ -251,13 +278,6 @@ def main():
         at each location to serve as model input. The data preprocessing process included outlier removal (via the IQR method), 
         min-max normalization, and spatial joining to integrate geographic and socioeconomic attributes.
         """)
-
-        # Display img3 with centered alignment and reduced size
-        img3 = get_img("img/img3.jpg")
-        if img3:
-            col1, col2, col3 = st.columns([1,7,1])
-            with col2:
-                st.image(img3, width=int(img3.width * 0.96))  # 0.8 * 1.2 = 0.96
 
         # Features Used table
         st.markdown("""
@@ -472,14 +492,34 @@ def main():
         st.pyplot(fig_imp)
 
         st.markdown("""
-        <div style="font-size: 0.9em;">
-        As what we can see from the chart, The model revealed:
-        1. Vegetation-related factors (NDVI, Green Cover) had the strongest cooling effects
-        2. Building Density and Albedo contributed significantly to higher temperatures
-        3. Relative Humidity played a secondary role
+        <div style="font-size:20px; line-height:1.8; padding: 30px;">
+        <p style="margin-bottom:20px;">
+        As shown in the chart, the model revealed the following insights:
+        </p>
 
-        These findings directly inform the construction of the Heatwave Vulnerability Index, which combines environmental 
-        heat and social sensitivity in the next stage of the analysis.
+        <p style="margin-bottom:15px;">
+        1. <b style="color:#003049;">Building Density</b> was the most influential factor in predicting surface temperature, suggesting that dense urban structures significantly contribute to urban heat.
+        </p>
+
+        <p style="margin-bottom:15px;">
+        2. <b style="color:#003049;">Albedo</b> also played a major role. Surfaces with low reflectivity (dark roofs, asphalt) tend to absorb more heat, increasing LST.
+        </p>
+
+        <p style="margin-bottom:15px;">
+        3. <b style="color:#003049;">Relative Humidity (RH)</b> ranked third in importance, indicating that atmospheric moisture does influence thermal patterns, but to a moderate degree.
+        </p>
+
+        <p style="margin-bottom:15px;">
+        4. <b style="color:#003049;">Vegetation-related variables</b> showed a mixed impact:
+        <ul style="margin-left:25px; margin-top:10px;">
+            <li><b style="color:#003049;">NDVI</b> had a noticeable cooling effect (0.18), reflecting the role of vegetation health.</li>
+            <li><b style="color:#003049;">Green Cover</b>, however, had minimal contribution (0.001), possibly due to overlap with NDVI or spatial resolution limitations.</li>
+        </ul>
+        </p>
+
+        <p style="margin-bottom:15px;">
+        In conclusion, our model effectively captures the influence of urban and environmental variables on temperature variation. We also found that <b style="color:#003049;">urban form and surface materials</b> (rather than vegetation alone) are primary drivers of heat distribution in our study area. This directly informs how we construct the Heatwave Vulnerability Index in the next stage of analysis.
+        </p>
         </div>
         """, unsafe_allow_html=True)
 
