@@ -706,7 +706,7 @@ def main():
         ax_map.set_ylabel("Latitude", fontsize=shrink(17))
         ax_map.tick_params(axis='both', labelsize=shrink(14))
         
-        # 调整图例字体大小
+        # 调整图例字体
         leg = ax_map.get_legend()
         if leg is not None:
             for t in leg.get_texts():
