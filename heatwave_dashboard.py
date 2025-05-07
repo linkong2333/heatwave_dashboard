@@ -57,6 +57,13 @@ from shapely.geometry import Point
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import MinMaxScaler
 
+st.markdown("""
+<style>
+.stButton > button {
+    width: 100% !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ------------------- Streamlit Layout (Refactored) -------------------
 
@@ -75,6 +82,25 @@ def main():
     from sklearn.metrics import r2_score, mean_absolute_error
     import matplotlib.cm as cm
     import matplotlib.colors as colors
+
+    def navigate_to_page(page_num):
+        st.session_state['page_number'] = page_num
+        st.rerun()
+
+    def add_top_nav_button():
+        col1, col2, col3 = st.columns([2, 0.7, 2])
+        with col2:
+            if st.session_state['page_number'] > 1:
+                if st.button("⬆️", help="返回上一页", key="top_nav"):
+                    navigate_to_page(st.session_state['page_number'] - 1)
+
+    def add_bottom_nav_button():
+        st.markdown("<br>", unsafe_allow_html=True)
+        col1, col2, col3 = st.columns([2, 0.7, 2])
+        with col2:
+            if st.session_state['page_number'] < 4:
+                if st.button("⬇️", help="前往下一页", key="bottom_nav"):
+                    navigate_to_page(st.session_state['page_number'] + 1)
 
     @st.cache_data
     def load_training_data(point_path="Heatwave_Training_Data_With_RoadDensity (4).csv"):
@@ -189,6 +215,7 @@ def main():
             return None
 
     def page1():
+        add_top_nav_button()
         st.markdown(
             """
             <div style="display:flex; flex-direction:column; align-items:center; margin-top:70px; margin-bottom:40px;">
@@ -268,9 +295,11 @@ def main():
                 Technical Roadmap: Data Processing and Model Development Pipeline
                 </div>
                 """, unsafe_allow_html=True)
+        add_bottom_nav_button()
         return
 
     def page2():
+        add_top_nav_button()
         st.markdown("<h2 style='color:#003049;'>Model</h2>", unsafe_allow_html=True)
         st.markdown("""
         We generated 50,000 random sampling points across the Hong Kong region and extracted environmental and urban features at each location to serve as model input. The data preprocessing process included outlier removal (via the IQR method), min-max normalization, and spatial joining to integrate geographic and socioeconomic attributes.
@@ -423,9 +452,11 @@ def main():
         <p style="margin-bottom:15px;">In conclusion, our model effectively captures the influence of urban and environmental variables on temperature variation. We also found that <b style="color:#003049;">urban form and surface materials</b> (rather than vegetation alone) are primary drivers of heat distribution in our study area. This directly informs how we construct the Heatwave Vulnerability Index in the next stage of analysis.</p>
         </div>
         """, unsafe_allow_html=True)
+        add_bottom_nav_button()
         return
 
     def page3():
+        add_top_nav_button()
         st.markdown("<h2 style='color:#003049;'>Vulnerability Index</h2>", unsafe_allow_html=True)
         st.markdown("""
         <div style='font-size:1.1rem;'>
@@ -556,9 +587,11 @@ def main():
                 """, unsafe_allow_html=True)
         except Exception as e:
             st.error(f"Error loading vulnerability index map: {e}")
+        add_bottom_nav_button()
         return
 
     def page4():
+        add_top_nav_button()
         st.markdown("<h2 style='color:#003049;'>Conclusion</h2>", unsafe_allow_html=True)
         st.markdown("""
         <div style="font-size:20px; line-height:1.8; padding: 30px;">
@@ -592,6 +625,7 @@ def main():
         </p>
         </div>
         """, unsafe_allow_html=True)
+        add_bottom_nav_button()
         return
 
     # ----------- Sidebar: Data Upload & Weights (English, compact) -----------
