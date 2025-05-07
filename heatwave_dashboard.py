@@ -520,7 +520,7 @@ def main():
             plt.tight_layout()
             st.pyplot(fig_map)
             st.caption("<span style='font-size:15px;'>This map visualizes the spatial distribution of the Urban Heatwave Vulnerability Index, highlighting areas where demographic, socioeconomic, and thermal risk factors combine to increase vulnerability.</span>", unsafe_allow_html=True)
-            # 下方两个分区图并列一行，无大标题副标题，直接用图内标题
+            # 下方两个分区图并列一行
             col_bar, col_box = st.columns(2)
             with col_bar:
                 valid_gdf = gdf_with_district[['District', 'Vulnerability_Index']].dropna()
@@ -611,7 +611,7 @@ def main():
 
         <p style="margin-bottom:15px;">
         2. <b style="color:#D62828;">Strategic Implications:</b><br>
-        Identifying <b style="color:#003049;">high-risk areas</b>, such as <b style="color:#003049;">Tuen Mun, Sham Shui Po, Kwun Tong, and Kowloon City</b>, where both <b style="color:#003049;">heat exposure and population sensitivity</b> are high, allows for more <b style="color:#003049;">targeted adaptation strategies</b> and resource allocation.
+        Identifying <b style="color:#003049;">high-risk areas</b>, such ass <b style="color:#003049;">Tuen Mun, Sham Shui Po, Kwun Tong, and Kowloon City</b>, where both <b style="color:#003049;">heat exposure and population sensitivity</b> are high, allows for more <b style="color:#003049;">targeted adaptation strategies</b> and resource allocation.
         </p>
 
         <p style="margin-bottom:15px;">
